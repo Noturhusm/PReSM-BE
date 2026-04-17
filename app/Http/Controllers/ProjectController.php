@@ -3,62 +3,106 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use App\Models\projects;
-use validator;
+use App\Models\Project;
+use App\Models\ProjectDocuments; // Added this import
+use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
-    //
-
+    // Create a new project
     public function create(Request $request)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'required',
-        //     'emailId' => 'required|email',
-        //     'password' => 'required',
-        //     'password' => 'required|same:password',
-        // ]);
+        $request->validate([
+            'projectName' => 'required|string|max:255',
+            'clientName' => 'required|string|max:255',
+            'projectManager' => 'required|string|max:255',
+            'projectCode' => 'required|string|max:50|unique:projects,projectCode'
+        ]);
 
-        // if($validator->fails()){
-        //     return $this->sendError('Validation Error.', $validator->errors());
-        // }
+        $project = Project::create($request->all());
 
-        $input = $request->all();
-        $project = projects::create($input);
+        return response()->json([
+            'message' => 'Project registered successfully',
+            'project' => $project
+        ], 201);
+    }
+     
+    
 
-        return ('Project registered successfully.');
+    public function index()
+    {
+        // Including 'documents' allows the frontend to see the file count/list immediately
+        return response()->json(Project::with('documents')->get());
     }
 
-    public function getProject()
+   
+    public function getProject($id)
     {
-        $data = DB::table('projects')->get();
-        return $data;
+        // .find($id) is better than .where('id', $id)->get() because it returns ONE object, not a list
+        $project = Project::with('documents')->find($id);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        return response()->json($project);
+    }
+    
+
+    public function show($id)
+    {
+        // 'with(documents)' ensures the table in React isn't empty
+        $project = Project::with('documents')->find($id);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        return response()->json($project);
     }
 
-    public function getProjectDetail($id)
+    // Handle File Uploads
+     public function uploadDocument(Request $request, $id) 
     {
-        $project = DB::table('projects')->where('projectCode', $id )->get();
+        $request->validate([
+        'uploads' => 'required|file|max:10240',
+         ]);
 
-        return $project;
+    // FIX: Make sure you have "$project =" before the find command
+    $project = Project::find($id);
+
+    if (!$project) {
+        return response()->json(['error' => 'Project not found'], 404);
     }
 
-    public function delete(Request $request)
+    if ($request->hasFile('uploads')) {
+        $file = $request->file('uploads');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $path = $file->storeAs('documents', $fileName, 'public');
+
+        // Now $project is defined and we can get the projectCode
+        $document = ProjectDocuments::create([
+            'projectCode' => $project->id, 
+            'file_name'   => $file->getClientOriginalName(),
+            'file_path'   => $path,
+        ]);
+
+        return response()->json([
+            'message' => 'File uploaded successfully',
+            'document' => $document
+        ], 200);
+    }
+
+    return response()->json(['error' => 'No file uploaded'], 400);
+    }
+
+    // Delete a project
+    public function delete($projectCode)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'required',
-        //     'emailId' => 'required|email',
-        //     'password' => 'required',
-        //     'password' => 'required|same:password',
-        // ]);
+        Project::where('projectCode', $projectCode)->delete();
 
-        // if($validator->fails()){
-        //     return $this->sendError('Validation Error.', $validator->errors());
-        // }
-
-        $project = DB::table('projects')->where('projectCode', $request-> projectCode)->delete();
-
-        return ('Project registered successfully.');
+        return response()->json([
+            'message' => 'Project deleted successfully'
+        ]);
     }
 }

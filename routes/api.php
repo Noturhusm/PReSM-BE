@@ -3,54 +3,78 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Controllers
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\settings\SystemSettingsController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportDataController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\API\LoginController;
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
+// 1. THIS IS THE ACTUAL LOGIN ACTION (Must be POST)
+Route::post('/login', [LoginController::class, 'login']);
+
+// 2. This is the "Security Net" (If someone hits a protected route without a token)
+Route::get('/login', function () {
+    return response()->json(['message' => 'Unauthenticated.'], 401);
+})->name('login');
 
 
-Route::controller(RegisterController::class)->group(function(){
-    Route::post('register', 'register');
-    Route::post('login', 'login');
-    Route::post('forgotPassword','forgotPassword');
-});
-// Report
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Sanctum)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::controller(ReportDataController::class)->group(function(){
-    Route::get('data-report','show');
-    Route::get('data-report2','show2');
+    // Logout
+    Route::post('/logout', [LoginController::class, 'logout']);
 
-});
+    // Project Details (Inside protected group for security)
+   Route::get('/{id}', [ProjectController::class, 'show']);
 
-//Document
-Route::controller(ProjectController::class)->group(function(){
-    Route::post('addProject','create');
-    Route::get('deleteProject/{projectCode}','delete');
-    Route::get('getProject','getProject');
-    Route::get('getProjectDetail/{id}','getProjectDetail');
-});
+     // Ensure the URL matches exactly what the frontend is calling
+    Route::post('/projects/{id}/upload', [ProjectController::class, 'uploadDocument']);
+    
+   
+    
+    // Dashboard
+    Route::get('/dashboard', function() {
+        return response()->json(['message' => 'Welcome to dashboard']);
+    });
 
-// Mail=
-Route::controller(EmailController::class)->group(function(){
-    Route::get('send-welcome-email','index');
-});
-
-Route::middleware('auth:sanctum')->group( function () {
-    Route::resource('products', ProductController::class);
-
-
-
-    // User
-
-    // Setting
-
-    // System Setting
-    Route::controller(SystemSettingsController::class)->group(function(){
-        Route::post('system-settings','create');
+    /*
+    |--------------------------------------------------------------------------
+    | Project Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('projects')->group(function () {
+        Route::post('/', [ProjectController::class, 'create']);
+        Route::get('/', [ProjectController::class, 'index']);
+        Route::delete('/{projectCode}', [ProjectController::class, 'delete']);
     });
 
 
-});
+   
 
+    /*
+    |--------------------------------------------------------------------------
+    | Other Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::post('/system-settings', [SystemSettingsController::class, 'create']);
+    Route::get('/send-welcome-email', [EmailController::class, 'index']);
+
+    Route::prefix('report')->group(function () {
+        Route::get('/data-report', [ReportDataController::class, 'show']);
+        Route::get('/data-report2', [ReportDataController::class, 'show2']);
+    });
+    
+});

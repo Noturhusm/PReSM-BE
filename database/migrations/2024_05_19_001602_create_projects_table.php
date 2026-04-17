@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('projectName');
             $table->text('projectDetail');
             $table->string('clientName');
-            $table->string('projectCode');
+            $table->string('projectCode')->unique();
             $table->string('projectManager');
+            $table->string('projectStatus')->default('active');
             $table->timestamps();
         });
     }
