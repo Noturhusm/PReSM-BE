@@ -13,14 +13,22 @@ class Project extends Model
         'clientName', 
         'projectManager', 
         'projectCode',
-        'projectDetail'
+        'projectDetail',
+        'projectStartDate',
+        'projectEndDate',
+        'projectType',
+        'projectCategory',
+        'projectCost',
+        'projectStatus',
+        'projectTeamMembers'
   
     ];
 
     public function documents()
-{
+    {
     // Second argument is the foreign key on the documents table
     // Third argument is the local key on the projects table
-    return $this->hasMany(ProjectDocuments::class, 'projectCode', 'projectCode');
-}
+
+        return $this->hasMany(ProjectDocuments::class, 'projectCode', 'projectCode');
+    }
 }

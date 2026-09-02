@@ -20,6 +20,8 @@ use App\Http\Controllers\API\LoginController;
 
 // 1. THIS IS THE ACTUAL LOGIN ACTION (Must be POST)
 Route::post('/login', [LoginController::class, 'login']);
+Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/forgotPassword', [RegisterController::class, 'forgotPassword']);
 
 // 2. This is the "Security Net" (If someone hits a protected route without a token)
 Route::get('/login', function () {
@@ -37,8 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Logout
     Route::post('/logout', [LoginController::class, 'logout']);
 
-    // Project Details (Inside protected group for security)
-   Route::get('/{id}', [ProjectController::class, 'show']);
+  
 
      // Ensure the URL matches exactly what the frontend is calling
     Route::post('/projects/{id}/upload', [ProjectController::class, 'uploadDocument']);
@@ -58,11 +59,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('projects')->group(function () {
         Route::post('/', [ProjectController::class, 'create']);
         Route::get('/', [ProjectController::class, 'index']);
+        Route::get('/{id}', [ProjectController::class, 'show']);
+        Route::put('/{id}', [ProjectController::class, 'update']);
         Route::delete('/{projectCode}', [ProjectController::class, 'delete']);
     });
+    Route::delete('/project-documents/{documentId}', [ProjectController::class, 'deleteDocument']);
 
-
-   
+    
 
     /*
     |--------------------------------------------------------------------------

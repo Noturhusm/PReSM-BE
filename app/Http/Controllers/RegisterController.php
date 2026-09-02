@@ -25,13 +25,12 @@ class RegisterController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
-            'emailId' => 'required|email',
-            'password' => 'required',
-            'password' => 'required|same:password',
+            'emailId' => 'required|email|unique:users,emailId',
+            'password' => 'required|min:6',
         ]);
 
         if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
         }
 
         $input = $request->all();
@@ -65,7 +64,7 @@ class RegisterController extends BaseController
             return $this->sendResponse($success, 'User login successfully.');
         }
         else{
-            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised'], 401);
         }
     }
 
@@ -81,7 +80,7 @@ class RegisterController extends BaseController
         ]);
 
         if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
         }
 
         $new_password = Str::random(7);
