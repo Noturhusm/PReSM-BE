@@ -6,12 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    protected $table = 'projects'; 
+    protected $table = 'projects';
+
+    protected $primaryKey = 'project_id';
+
+    protected $hidden = [
+        'Project_description',
+    ];
+
+    protected $appends = [
+        'projectDetail',
+    ];
 
     protected $fillable = [
-        'projectName', 
-        'clientName', 
-        'projectManager', 
+        'projectName',
+        'clientName',
+        'projectManager',
         'projectCode',
         'projectDetail',
         'projectStartDate',
@@ -20,15 +30,21 @@ class Project extends Model
         'projectCategory',
         'projectCost',
         'projectStatus',
-        'projectTeamMembers'
-  
+        'projectTeamMembers',
     ];
+
+    public function getProjectDetailAttribute(): ?string
+    {
+        return $this->attributes['Project_description'] ?? null;
+    }
+
+    public function setProjectDetailAttribute(?string $value): void
+    {
+        $this->attributes['Project_description'] = $value;
+    }
 
     public function documents()
     {
-    // Second argument is the foreign key on the documents table
-    // Third argument is the local key on the projects table
-
-        return $this->hasMany(ProjectDocuments::class, 'projectCode', 'projectCode');
+        return $this->hasMany(ProjectDocuments::class, 'project_id', 'project_id');
     }
 }

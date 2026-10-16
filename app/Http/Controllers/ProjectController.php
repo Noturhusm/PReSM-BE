@@ -57,7 +57,7 @@ class ProjectController extends Controller
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('projects', 'projectCode')->ignore($project->id),
+                Rule::unique('projects', 'projectCode')->ignore($project->getKey(), $project->getKeyName()),
             ],
             'projectStartDate' => 'nullable|date',
             'projectEndDate' => 'nullable|date',
@@ -104,9 +104,11 @@ class ProjectController extends Controller
             $path = $file->storeAs('documents', $fileName, 'public');
 
             $document = ProjectDocuments::create([
-                'projectCode' => $project->projectCode,
+                'project_id' => $project->getKey(),
                 'file_name' => $file->getClientOriginalName(),
                 'file_path' => $path,
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
             ]);
 
             return response()->json([

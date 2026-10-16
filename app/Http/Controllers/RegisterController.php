@@ -25,7 +25,7 @@ class RegisterController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
-            'emailId' => 'required|email|unique:users,emailId',
+            'emailId' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
         ]);
 
@@ -34,6 +34,8 @@ class RegisterController extends BaseController
         }
 
         $input = $request->all();
+        $input['email'] = $input['emailId'];
+        unset($input['emailId']);
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
         $success['token'] =  $user->createToken('MyApp')->plainTextToken;
@@ -56,7 +58,7 @@ class RegisterController extends BaseController
      */
     public function login(Request $request): JsonResponse
     {
-        if(Auth::attempt(['emailId' => $request->emailId, 'password' => $request->password])){
+        if(Auth::attempt(['email' => $request->emailId, 'password' => $request->password])){
             $user = Auth::user();
             $success['token'] =  $user->createToken('MyApp')->plainTextToken;
             $success['name'] =  $user->name;
@@ -86,7 +88,7 @@ class RegisterController extends BaseController
         $new_password = Str::random(7);
         $input = $request->all();
         $input['password'] = bcrypt($new_password);
-        User::where('emailId', $input['emailId'])->update([
+        User::where('email', $input['emailId'])->update([
             'password' => $input['password'],
             // Add more columns and their corresponding new values as needed
         ]);

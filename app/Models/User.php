@@ -11,9 +11,11 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
 
+    protected $primaryKey = 'user_id';
+
     protected $fillable = [
         'name',
-        'emailId',
+        'email',
         'password',
     ];
 
@@ -30,8 +32,4 @@ class User extends Authenticatable
         ];
     }
 
-    public function getAuthIdentifierName()
-    {
-        return 'emailId';
-    }
 }

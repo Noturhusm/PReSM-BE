@@ -17,8 +17,8 @@ class LoginController extends Controller
             'password' => 'required'
         ]);
 
-        // Find user by emailId
-        $user = User::where('emailId', $request->email)->first();
+        // Find the user by the database column corresponding to the email input.
+        $user = User::where('email', $request->email)->first();
 
         // Check if user exists and password matches
         if (!$user || !Hash::check($request->password, $user->password)) {

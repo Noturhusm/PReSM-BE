@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProjectDocuments extends Model
 {
-    // Important: Use the table name you created in MySQL
-    protected $table = 'projects_document';
+    protected $table = 'documents';
+
+    protected $primaryKey = 'document_id';
 
     protected $fillable = [
-        'projectCode', 
-        'file_name', 
-        'file_path'];
-
-   
+        'project_id',
+        'file_name',
+        'file_path',
+        'file_type',
+        'file_size',
+    ];
 }
